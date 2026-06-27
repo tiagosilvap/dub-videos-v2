@@ -1,0 +1,4 @@
+openai-whisper>=20231117
+openai>=1.30.0
+pysrt>=1.1.2
+pydub>=0.25.1
