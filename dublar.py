@@ -283,13 +283,13 @@ def parsear_traducao(texto_raw: str, expected_count: int) -> list[str]:
 
 def gerar_audio_openai(texto: str, output_file: Path, client: OpenAI, voice: str, model: str):
     """Gera áudio usando OpenAI TTS API."""
-    response = client.audio.speech.create(
+    with client.audio.speech.with_streaming_response.create(
         model=model,
         voice=voice,
         input=texto,
         response_format="mp3",
-    )
-    response.stream_to_file(str(output_file))
+    ) as response:
+        response.stream_to_file(str(output_file))
 
 
 def obter_duracao_audio(audio_file: str) -> float:
@@ -356,6 +356,11 @@ def gerar_audio_tts(segmentos: list[dict], output_path: Path,
 
     for i, seg in enumerate(segmentos):
         audio_file = tts_dir / f"seg_{i:04d}.mp3"
+
+        # Pular segmentos com texto vazio
+        if not seg["text_pt"] or not seg["text_pt"].strip():
+            print(f"   ⚠️  Segmento {i} com texto vazio, pulando...")
+            continue
 
         try:
             gerar_audio_openai(seg["text_pt"], audio_file, client, voice, model)
